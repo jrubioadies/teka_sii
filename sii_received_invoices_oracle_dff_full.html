@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SII Received Invoices — Oracle DFF XML Builder</title>
+<style>
+  :root {
+    --font-sans: system-ui, -apple-system, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", monospace;
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f4f0;
+    --color-background-tertiary: #ece9e1;
+    --color-background-info: #e6f1fb;
+    --color-background-warning: #faeeda;
+    --color-background-danger: #fcebeb;
+    --color-background-success: #eaf3de;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #888780;
+    --color-text-info: #185fa5;
+    --color-text-warning: #854f0b;
+    --color-text-danger: #a32d2d;
+    --color-text-success: #3b6d11;
+    --color-border-tertiary: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.22);
+    --color-border-primary: rgba(0,0,0,0.35);
+    --color-border-info: #b5d4f4;
+    --color-border-warning: #fac775;
+    --color-border-danger: #f7c1c1;
+    --color-border-success: #c0dd97;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background-primary: #1e1e1c;
+      --color-background-secondary: #2a2a27;
+      --color-background-tertiary: #333330;
+      --color-background-info: #042c53;
+      --color-background-warning: #412402;
+      --color-background-danger: #501313;
+      --color-background-success: #173404;
+      --color-text-primary: #e8e6de;
+      --color-text-secondary: #b4b2a9;
+      --color-text-tertiary: #888780;
+      --color-text-info: #85b7eb;
+      --color-text-warning: #fac775;
+      --color-text-danger: #f09595;
+      --color-text-success: #97c459;
+      --color-border-tertiary: rgba(255,255,255,0.1);
+      --color-border-secondary: rgba(255,255,255,0.18);
+      --color-border-primary: rgba(255,255,255,0.28);
+      --color-border-info: #0c447c;
+      --color-border-warning: #633806;
+      --color-border-danger: #791f1f;
+      --color-border-success: #27500a;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    background: var(--color-background-tertiary);
+    padding: 24px 16px;
+    min-height: 100vh;
+  }
+  .page-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .page-header h1 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .page-header p { font-size: 12px; color: var(--color-text-secondary); }
+  .container { max-width: 960px; margin: 0 auto; }
+  .sec { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: .875rem 1.125rem; margin-bottom: 10px; }
+  .sh { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin-bottom: 6px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 12px; margin-bottom: 6px; }
+  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px 10px; margin-bottom: 6px; }
+  .f label { font-size: 11px; color: var(--color-text-tertiary); display: block; margin-bottom: 2px; }
+  input, select {
+    width: 100%; height: 30px; font-size: 12px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 0 7px;
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+  }
+  input:focus, select:focus { outline: none; border-color: var(--color-border-primary); }
+  input:disabled { opacity: .5; cursor: not-allowed; }
+  .bk { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 500; white-space: nowrap; }
+  .bk-a { background: var(--color-background-info); color: var(--color-text-info); }
+  .bk-r { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .bk-o { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .bk-g { background: var(--color-background-success); color: var(--color-text-success); }
+  .dff-badge { font-size: 9px; padding: 1px 5px; background: var(--color-background-tertiary); border: 0.5px solid var(--color-border-tertiary); border-radius: 3px; color: var(--color-text-tertiary); font-weight: 500; }
+  .op-row { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+  .op { flex: 1; min-width: 100px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 6px 4px; cursor: pointer; background: var(--color-background-secondary); text-align: center; transition: all .12s; color: var(--color-text-secondary); }
+  .op:hover { background: var(--color-background-tertiary); }
+  .op.on { border-color: var(--color-border-info); background: var(--color-background-info); color: var(--color-text-info); }
+  .op .oi { font-size: 16px; display: block; margin-bottom: 2px; }
+  .op .ot { font-weight: 500; font-size: 11px; }
+  .op .os { font-size: 10px; opacity: .8; }
+  .tab-row { display: flex; gap: 3px; margin-bottom: 10px; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 6px; flex-wrap: wrap; }
+  .tb { padding: 4px 10px; border-radius: var(--border-radius-md); border: none; background: none; cursor: pointer; font-size: 12px; color: var(--color-text-secondary); transition: all .12s; }
+  .tb.on { background: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 500; }
+  .pn { display: none; } .pn.on { display: block; }
+  .xml-out { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px; font-family: var(--font-mono); font-size: 11px; line-height: 1.55; overflow: auto; white-space: pre; max-height: 420px; color: var(--color-text-primary); }
+  .btn-gen { width: 100%; height: 36px; background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 8px; transition: opacity .15s; }
+  .btn-gen:hover { opacity: .84; }
+  .btn-cp { width: 100%; height: 30px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 12px; cursor: pointer; color: var(--color-text-secondary); margin-top: 6px; }
+  .info { background: var(--color-background-info); border: 0.5px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 6px 10px; font-size: 11px; color: var(--color-text-info); margin-bottom: 8px; }
+  .warn { background: var(--color-background-warning); border: 0.5px solid var(--color-border-warning); border-radius: var(--border-radius-md); padding: 6px 10px; font-size: 11px; color: var(--color-text-warning); margin-bottom: 8px; display: none; }
+  .vrow { display: grid; grid-template-columns: 70px 1fr 1fr 1fr 90px; gap: 5px; align-items: end; margin-bottom: 5px; }
+  .vrow label { font-size: 10px; }
+  .vrow input, .vrow select { height: 28px; font-size: 12px; }
+  hr { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 10px 0; }
+  .flow { display: flex; gap: 3px; align-items: stretch; flex-wrap: wrap; margin-bottom: 10px; }
+  .fs { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 5px 8px; font-size: 11px; flex: 1; min-width: 70px; text-align: center; }
+  .fs .fl { color: var(--color-text-tertiary); font-size: 10px; }
+  .fs .fv { font-weight: 500; font-size: 11px; margin-top: 1px; }
+  .fa { display: flex; align-items: center; color: var(--color-text-tertiary); font-size: 13px; padding: 0 1px; }
+  @media (max-width: 600px) {
+    .g2, .g3, .g4 { grid-template-columns: 1fr; }
+    .vrow { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="page-header">
+  <h1>SII Received Invoices — Oracle ERP Cloud DFF XML Builder</h1>
+  <p>TEKA Industrial S.A. · SuministroLRFacturasRecibidas v1.1 · Oracle DFF fields mapped to AEAT SII schema</p>
+</div>
+
+<!-- FLOW -->
+<div class="sec">
+  <div class="sh">Oracle ERP Cloud → SII XML mapping</div>
+  <div class="flow">
+    <div class="fs"><div class="fl">Supplier master</div><div class="fv">Country/NIF/VAT</div></div>
+    <div class="fa">→</div>
+    <div class="fs"><div class="fl">Oracle DFF</div><div class="fv">Orig.Factura / Regime / Rectif.</div></div>
+    <div class="fa">→</div>
+    <div class="fs"><div class="fl">Invoice lines</div><div class="fv">VAT code + base</div></div>
+    <div class="fa">→</div>
+    <div class="fs"><div class="fl">SII XML</div><div class="fv">FacturaRecibida</div></div>
+    <div class="fa">→</div>
+    <div class="fs"><div class="fl">AEAT</div><div class="fv">Accepted ✓</div></div>
+  </div>
+  <div class="sh" style="margin-bottom:8px">Operation type <span class="dff-badge">from supplier country</span></div>
+  <div class="op-row">
+    <button class="op on" id="op-dom" onclick="setOp('domestic')"><span class="oi">🏠</span><div class="ot">Domestic</div><div class="os">ES → NIF block</div></button>
+    <button class="op" id="op-eu" onclick="setOp('eu')"><span class="oi">🇪🇺</span><div class="ot">EU / Intra-comm.</div><div class="os">IDType 02 NIF-IVA</div></button>
+    <button class="op" id="op-imp" onclick="setOp('import')"><span class="oi">📦</span><div class="ot">Import DUA</div><div class="os">TipoFactura F5</div></button>
+    <button class="op" id="op-row" onclick="setOp('row')"><span class="oi">🌍</span><div class="ot">Third country</div><div class="os">IDType 04–07</div></button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tab-row">
+  <button class="tb on" onclick="tab('t1')">Submitter</button>
+  <button class="tb" onclick="tab('t2')">Supplier</button>
+  <button class="tb" onclick="tab('t3')">Invoice header</button>
+  <button class="tb" onclick="tab('t4')">Oracle DFF</button>
+  <button class="tb" onclick="tab('t5')">VAT lines</button>
+  <button class="tb" onclick="tab('t6')">XML output</button>
+</div>
+
+<!-- T1: SUBMITTER -->
+<div id="t1" class="pn on">
+  <div class="sec">
+    <div class="sh">Titular (submitter) <span class="bk bk-a">auto-filled from ERP</span></div>
+    <div class="g2">
+      <div class="f"><label>NombreRazon</label><input id="t-name" value="TEKA Industrial S.A."/></div>
+      <div class="f"><label>NIF</label><input id="t-nif" value="A20025212"/></div>
+    </div>
+    <div class="g3">
+      <div class="f"><label>TipoComunicacion</label>
+        <select id="inv-tcom"><option value="A0">A0 – New registration</option><option value="A1">A1 – Amendment</option></select>
+      </div>
+      <div class="f"><label>IDVersionSii</label><input value="1.1" disabled/></div>
+      <div class="f"><label>Regional Information <span class="dff-badge">DFF</span></label>
+        <select id="regional"><option value="ES">Online VAT Reporting for Spain</option><option value="IC">Canary Islands (IGIC)</option></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- T2: SUPPLIER -->
+<div id="t2" class="pn">
+  <div class="sec">
+    <div class="sh">Supplier identification (IDEmisorFactura + Contraparte)</div>
+    <div class="g3">
+      <div class="f"><label>Country code (CodigoPais) <span class="dff-badge">supplier master</span></label>
+        <select id="s-country" onchange="onCountry()">
+          <option value="ES">ES – Spain</option><option value="DE">DE – Germany</option><option value="FR">FR – France</option><option value="IT">IT – Italy</option><option value="PT">PT – Portugal</option><option value="NL">NL – Netherlands</option><option value="BE">BE – Belgium</option><option value="GB">GB – United Kingdom</option><option value="US">US – United States</option><option value="CN">CN – China</option><option value="MX">MX – Mexico</option><option value="JP">JP – Japan</option><option value="OTHER">OTHER – Other</option>
+        </select>
+      </div>
+      <div class="f"><label>IDType <span class="bk bk-a">auto</span></label>
+        <select id="s-idtype">
+          <option value="02">02 – NIF-IVA (EU VAT no.)</option><option value="03">03 – Passport</option><option value="04" selected>04 – Tax ID (other country)</option><option value="05">05 – Census certificate</option><option value="06">06 – Other</option><option value="07">07 – Not registered (AEAT)</option>
+        </select>
+      </div>
+      <div class="f"><label>Tax ID / VAT number</label><input id="s-taxid" value="A14635387"/></div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Razón Social Tercero (NombreRazon) <span class="dff-badge">DFF</span></label><input id="s-name" value="Proveedor Internacional SA"/></div>
+      <div class="f"><label>Número Identificador Fiscal <span class="dff-badge">DFF</span></label><input id="s-nif2" placeholder="If different from Tax ID above"/></div>
+    </div>
+    <div id="derived-box" class="info">IDEmisorFactura uses: <strong id="derived-txt">IDOtro block — CodigoPais + IDType 04 + ID</strong></div>
+  </div>
+</div>
+
+<!-- T3: INVOICE HEADER -->
+<div id="t3" class="pn">
+  <div class="sec">
+    <div class="sh">Invoice identification</div>
+    <div class="g3">
+      <div class="f"><label>NumSerieFacturaEmisor</label><input id="inv-num" value="INV-2025-001"/></div>
+      <div class="f"><label>FechaExpedicionFacturaEmisor (dd-mm-yyyy)</label><input id="inv-date" value="15-01-2025"/></div>
+      <div class="f"><label>FechaRegContable (dd-mm-yyyy) <span class="dff-badge">Invoice Recording Date</span></label><input id="inv-acct" value="20-01-2025"/></div>
+    </div>
+    <div class="g3">
+      <div class="f"><label>Ejercicio</label><input id="inv-year" value="2025"/></div>
+      <div class="f"><label>Periodo <span class="dff-badge">Reporting Period DFF</span></label>
+        <select id="inv-period">
+          <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        </select>
+      </div>
+      <div class="f"><label>FechaOperacion (if diff. from issue) <span class="dff-badge">Date Transaction Performed</span></label><input id="inv-fop" placeholder="dd-mm-yyyy (optional)"/></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sh">Invoice type &amp; regime</div>
+    <div class="g2">
+      <div class="f"><label>TipoFactura <span class="dff-badge">Document Type Override DFF</span></label>
+        <select id="inv-tipo" onchange="onTipo()">
+          <option value="F1" selected>F1 – Complete invoice</option><option value="F2">F2 – Simplified invoice</option><option value="F3">F3 – Issued in place of simplified</option><option value="F4">F4 – Summary entry</option><option value="F5">F5 – Import (DUA)</option><option value="F6">F6 – Other accounting document</option><option value="R1">R1 – Rectification (art. 80.1,2,6)</option><option value="R2">R2 – Rectification (art. 80.3)</option><option value="R3">R3 – Rectification (art. 80.4)</option><option value="R4">R4 – Other rectification</option><option value="R5">R5 – Rectification simplified</option><option value="LC">LC – Customs clearance</option>
+        </select>
+      </div>
+      <div class="f"><label>ClaveRegimenEspecialOTrascendencia <span class="dff-badge">Special Regime DFF</span></label>
+        <select id="inv-clave">
+          <option value="01" selected>01 – General regime</option><option value="02">02 – Export</option><option value="03">03 – Special used/art/antiques</option><option value="04">04 – Golden investment</option><option value="05">05 – Travel agencies</option><option value="06">06 – VAT group (advanced)</option><option value="07">07 – Cash basis (RECC)</option><option value="08">08 – IGIC – Canary Islands</option><option value="09">09 – Travel/insurance</option><option value="12">12 – Business premises lease</option><option value="13">13 – Other lease</option><option value="14">14 – Recipient = taxpayer (public body)</option><option value="15">15 – Export (DF art.21)</option>
+        </select>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="f"><label>ClaveRegimenAdicional1 (optional)</label>
+        <select id="inv-clave2"><option value="">— none —</option><option value="01">01</option><option value="03">03</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="12">12</option><option value="13">13</option></select>
+      </div>
+      <div class="f"><label>ClaveRegimenAdicional2 (optional)</label>
+        <select id="inv-clave3"><option value="">— none —</option><option value="01">01</option><option value="03">03</option><option value="12">12</option></select>
+      </div>
+      <div class="f"><label>ImporteTotal</label><input id="inv-total" value="1210.00"/></div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>DescripcionOperacion</label><input id="inv-desc" value="Compra de servicios informáticos"/></div>
+      <div class="f"><label>RefExterna <span class="bk bk-a">internal ERP ref</span></label><input id="inv-ref" value="PO-2025-001"/></div>
+    </div>
+    <div class="g3">
+      <div class="f"><label>CuotaDeducible</label><input id="inv-deducible" value="210.00"/></div>
+      <div class="f"><label>InversionSujetoPasivo (ISP)?</label>
+        <select id="isp-yn" onchange="onIsp()"><option value="N">N – No</option><option value="Y">Y – Yes (reverse charge)</option></select>
+      </div>
+      <div class="f"><label>NumSerieFacturaEmisorResumenFin <span class="bk bk-o">F4 only</span></label><input id="inv-resumen" placeholder="Last invoice of summary"/></div>
+    </div>
+  </div>
+</div>
+
+<!-- T4: ORACLE DFF -->
+<div id="t4" class="pn">
+  <div class="sec">
+    <div class="sh">Oracle DFF fields → SII XML mapping</div>
+    <div class="info" style="margin-bottom:10px">These fields appear as descriptive flexfields in Oracle ERP Cloud. Each maps to a specific SII XML element.</div>
+    <div class="g2">
+      <div class="f"><label>Origen Factura <span class="dff-badge">DSP/manual/API</span> → <em>RefExterna / internal routing</em></label>
+        <select id="dff-origen"><option value="DSP">DSP – System generated</option><option value="MAN">MAN – Manual entry</option><option value="EDI">EDI – Electronic</option></select>
+      </div>
+      <div class="f"><label>Tipo Rectificativa <span class="dff-badge">DFF</span> → <em>TipoRectificativa</em></label>
+        <select id="dff-rectitype" onchange="onRectif()"><option value="">— not a rectification —</option><option value="S">S – Replacement (Sustitución)</option><option value="I">I – Difference (Diferencias)</option></select>
+      </div>
+    </div>
+    <div id="rectif-block" style="display:none">
+      <hr>
+      <div class="sh" style="margin-top:4px">Rectification details <span class="bk bk-r">required when R1–R5</span></div>
+      <div class="g3">
+        <div class="f"><label>Factura Rectificada (NumSerie original)</label><input id="dff-rect-num" placeholder="Original invoice number"/></div>
+        <div class="f"><label>Fecha Factura Rectificada (dd-mm-yyyy)</label><input id="dff-rect-date" placeholder="dd-mm-yyyy"/></div>
+        <div class="f"><label>Factura Padre / ID_Factura padre</label><input id="dff-parent" placeholder="Parent invoice ID (if grouped)"/></div>
+      </div>
+      <div id="importe-rect-block" style="display:none">
+        <div class="g3">
+          <div class="f"><label>Base Rectificada <span class="bk bk-r">S-type only</span></label><input id="dff-base-rect" value="0.00"/></div>
+          <div class="f"><label>Cuota Rectificada <span class="bk bk-r">S-type only</span></label><input id="dff-cuota-rect" value="0.00"/></div>
+          <div class="f"><label>CuotaRecargoRectificado (optional)</label><input id="dff-recargo-rect" value="0.00"/></div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="sh" style="margin-top:4px">Intra-EU fields <span class="dff-badge">Intra-EU Declared Key / Subtype DFF</span></div>
+    <div class="g2">
+      <div class="f"><label>Intra-EU Declared Key → <em>ClaveRegimenEspecial (EU operations)</em></label>
+        <select id="dff-intrakey"><option value="">— not applicable —</option><option value="09">09 – Intra-EU acquisition of goods</option><option value="10">10 – Intra-EU acquisition of services</option></select>
+      </div>
+      <div class="f"><label>Intra-EU Subtype → <em>TipoNoExenta / DesgloseTipoOperacion</em></label>
+        <select id="dff-intrasub"><option value="">— not applicable —</option><option value="bienes">Entrega de bienes (goods delivery)</option><option value="servicios">Prestación de servicios (services)</option></select>
+      </div>
+    </div>
+    <hr>
+    <div class="sh" style="margin-top:4px">Special flags <span class="dff-badge">Late Submission / Simplified Invoice / Billing Agreement DFF</span></div>
+    <div class="g3">
+      <div class="f"><label>Late Submission → <em>RegPrevioGGEEoREDEMEoCompetencia</em></label>
+        <select id="dff-late"><option value="N">N – Normal submission</option><option value="S">S – Late (GGEE/REDEME/competencia change)</option></select>
+      </div>
+      <div class="f"><label>Simplified Invoice → <em>FacturaSimplificadaArticulos7.2_7.3</em></label>
+        <select id="dff-simpl"><option value="N">N – No</option><option value="S">S – Yes (Art. 7.2/7.3 RD 1619/2012)</option></select>
+      </div>
+      <div class="f"><label>Billing Agreement Number → <em>NumRegistroAcuerdoFacturacion</em></label>
+        <input id="dff-billing" placeholder="Max 15 chars (optional)"/></div>
+    </div>
+    <hr>
+    <div class="sh" style="margin-top:4px">Third Party Invoice <span class="dff-badge">Third Party Invoice DFF</span></div>
+    <div class="g2">
+      <div class="f"><label>Third Party Invoice?</label>
+        <select id="dff-third"><option value="N">N – Invoice from direct supplier</option><option value="S">S – Issued by third party on supplier's behalf</option></select>
+      </div>
+      <div class="f"><label>Context Value (Oracle internal routing)</label>
+        <select id="dff-context"><option value="">— standard —</option><option value="PURCHASE">PURCHASE</option><option value="IMPORT">IMPORT</option><option value="INTRAEU">INTRAEU</option></select>
+      </div>
+    </div>
+    <hr>
+    <div class="sh" style="margin-top:4px">Status fields <span class="bk bk-g">read-only / from AEAT response</span></div>
+    <div class="g3">
+      <div class="f"><label>Transaction Status</label>
+        <select id="dff-status"><option value="Submitted">Submitted</option><option value="Accepted">Accepted</option><option value="Rejected">Rejected</option><option value="Pending">Pending</option></select>
+      </div>
+      <div class="f"><label>Tax Authority Status</label><input id="dff-ta-status" value="Accepted" placeholder="From AEAT response"/></div>
+      <div class="f"><label>Message Code (0 = OK)</label><input id="dff-msgcode" value="0"/></div>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Register Type</label><input value="Received Invoices Register" disabled/></div>
+      <div class="f"><label>Date Last Updated</label><input id="dff-updated" value="26/02/2026" disabled/></div>
+    </div>
+  </div>
+</div>
+
+<!-- T5: VAT LINES -->
+<div id="t5" class="pn">
+  <div class="sec">
+    <div class="sh">DesgloseIVA — standard VAT lines</div>
+    <div class="vrow" style="font-size:10px;color:var(--color-text-tertiary);font-weight:500;margin-bottom:4px">
+      <div>Rate %</div><div>Base imponible</div><div>Cuota soportada</div><div>TipoRecargo %</div><div>Investment good</div>
+    </div>
+    <div id="vat-lines">
+      <div class="vrow vl">
+        <input class="vr" value="21" style="height:28px;font-size:12px"/>
+        <input class="vb" value="1000.00" style="height:28px;font-size:12px" oninput="calcQ(this)"/>
+        <input class="vq" value="210.00" style="height:28px;font-size:12px"/>
+        <input class="vrec" value="" placeholder="opt." style="height:28px;font-size:12px"/>
+        <select class="vbi" style="height:28px;font-size:12px"><option value="N">N</option><option value="S">S – Yes</option></select>
+      </div>
+    </div>
+    <button onclick="addVat()" style="margin-top:6px;height:28px;width:110px;font-size:11px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;cursor:pointer;color:var(--color-text-secondary)">+ Add rate</button>
+    <div id="isp-wrap" style="display:none;margin-top:12px">
+      <hr style="margin-bottom:10px">
+      <div class="sh">InversionSujetoPasivo (ISP) — reverse charge lines <span class="bk bk-r">only when ISP = Y</span></div>
+      <div class="vrow" style="font-size:10px;color:var(--color-text-tertiary);font-weight:500;margin-bottom:4px">
+        <div>Rate %</div><div>Base imponible</div><div>Cuota soportada</div><div></div><div>Investment good</div>
+      </div>
+      <div id="isp-lines">
+        <div class="vrow vl">
+          <input class="ir" value="21" style="height:28px;font-size:12px"/>
+          <input class="ib" value="500.00" style="height:28px;font-size:12px"/>
+          <input class="iq" value="105.00" style="height:28px;font-size:12px"/>
+          <input value="" disabled style="height:28px;font-size:12px;opacity:.4"/>
+          <select class="ibi" style="height:28px;font-size:12px"><option value="N">N</option><option value="S">S – Yes</option></select>
+        </div>
+      </div>
+      <button onclick="addIsp()" style="margin-top:6px;height:28px;width:110px;font-size:11px;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;cursor:pointer;color:var(--color-text-secondary)">+ Add ISP rate</button>
+    </div>
+  </div>
+</div>
+
+<!-- T6: XML OUTPUT -->
+<div id="t6" class="pn">
+  <div id="warn-box" class="warn"></div>
+  <button class="btn-gen" onclick="gen()">Generate SII XML — FacturasRecibidas</button>
+  <div class="xml-out" id="xml-out">Click "Generate SII XML" to produce the ready-to-submit SOAP envelope.</div>
+  <button class="btn-cp" onclick="cp()">Copy XML</button>
+</div>
+
+</div><!-- /container -->
+
+<script>
+var COP='domestic';
+function gv(id){return(document.getElementById(id)||{}).value||'';}
+function tab(t){
+  var ts=['t1','t2','t3','t4','t5','t6'];
+  ts.forEach(function(x){document.getElementById(x).classList.remove('on');});
+  document.getElementById(t).classList.add('on');
+  document.querySelectorAll('.tab-row .tb').forEach(function(b,i){b.classList.toggle('on',ts[i]===t);});
+}
+function setOp(op){
+  COP=op;
+  ['dom','eu','imp','row'].forEach(function(k){document.getElementById('op-'+k).classList.remove('on');});
+  document.getElementById('op-'+{domestic:'dom',eu:'eu',import:'imp',row:'row'}[op]).classList.add('on');
+  var dt=document.getElementById('derived-txt');
+  if(op==='domestic'){document.getElementById('s-country').value='ES';document.getElementById('s-idtype').value='04';dt.innerHTML='NIF block directly — no IDOtro needed for ES suppliers';}
+  else if(op==='eu'){document.getElementById('s-idtype').value='02';dt.innerHTML='IDOtro with IDType <strong>02</strong> — NIF-IVA validated per EU member state algorithm';}
+  else if(op==='import'){document.getElementById('s-idtype').value='04';document.getElementById('inv-tipo').value='F5';dt.innerHTML='TipoFactura <strong>F5</strong> — DUA number goes in NumSerieFacturaEmisor';}
+  else{document.getElementById('s-idtype').value='04';dt.innerHTML='IDOtro with IDType <strong>04</strong> — foreign tax ID, non-EU supplier';}
+}
+function onCountry(){
+  var c=gv('s-country');
+  var eu=['DE','FR','IT','PT','NL','BE','PL','SE','AT','DK','FI','IE','CZ','HU','RO','SK','BG','HR','LT','LV','EE','SI','CY','MT','LU','GR'];
+  if(c==='ES')setOp('domestic');else if(eu.includes(c))setOp('eu');else setOp('row');
+}
+function onTipo(){var t=gv('inv-tipo');if(t==='F5')setOp('import');onRectif();}
+function onRectif(){
+  var r=gv('dff-rectitype');
+  document.getElementById('rectif-block').style.display=r?'block':'none';
+  document.getElementById('importe-rect-block').style.display=r==='S'?'block':'none';
+}
+function onIsp(){
+  var v=gv('isp-yn')==='Y';
+  document.getElementById('isp-wrap').style.display=v?'block':'none';
+}
+function calcQ(inp){
+  var row=inp.closest('.vrow');
+  var r=parseFloat(row.querySelector('.vr').value)||0;
+  var b=parseFloat(inp.value)||0;
+  row.querySelector('.vq').value=(b*r/100).toFixed(2);
+}
+function addVat(){
+  var d=document.createElement('div');d.className='vrow vl';
+  d.innerHTML='<input class="vr" value="10" style="height:28px;font-size:12px"/><input class="vb" value="0.00" style="height:28px;font-size:12px" oninput="calcQ(this)"/><input class="vq" value="0.00" style="height:28px;font-size:12px"/><input class="vrec" value="" placeholder="opt." style="height:28px;font-size:12px"/><select class="vbi" style="height:28px;font-size:12px"><option value="N">N</option><option value="S">S – Yes</option></select>';
+  document.getElementById('vat-lines').appendChild(d);
+}
+function addIsp(){
+  var d=document.createElement('div');d.className='vrow vl';
+  d.innerHTML='<input class="ir" value="21" style="height:28px;font-size:12px"/><input class="ib" value="0.00" style="height:28px;font-size:12px"/><input class="iq" value="0.00" style="height:28px;font-size:12px"/><input value="" disabled style="height:28px;font-size:12px;opacity:.4"/><select class="ibi" style="height:28px;font-size:12px"><option value="N">N</option><option value="S">S – Yes</option></select>';
+  document.getElementById('isp-lines').appendChild(d);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function gen(){
+  var warns=[];
+  var tipo=gv('inv-tipo');var rectitype=gv('dff-rectitype');
+  var isRectif=['R1','R2','R3','R4','R5'].includes(tipo);
+  if(isRectif&&!rectitype)warns.push('TipoFactura is rectification but TipoRectificativa not set in Oracle DFF tab.');
+  if(!isRectif&&rectitype)warns.push('TipoRectificativa is set but TipoFactura is not a rectification type.');
+  if(tipo==='F4'&&!gv('inv-resumen'))warns.push('TipoFactura F4 (summary) requires NumSerieFacturaEmisorResumenFin.');
+  var wb=document.getElementById('warn-box');
+  wb.style.display=warns.length?'block':'none';
+  wb.textContent=warns.join(' | ');
+  var isDom=COP==='domestic';
+  var sBlock=isDom?'            <sii:NIF>'+esc(gv('s-taxid'))+'</sii:NIF>':'            <sii:IDOtro>\n               <sii:CodigoPais>'+esc(gv('s-country'))+'</sii:CodigoPais>\n               <sii:IDType>'+esc(gv('s-idtype'))+'</sii:IDType>\n               <sii:ID>'+esc(gv('s-taxid'))+'</sii:ID>\n            </sii:IDOtro>';
+  var rectifBlock='';
+  if(isRectif&&rectitype){
+    rectifBlock+='            <sii:TipoRectificativa>'+esc(rectitype)+'</sii:TipoRectificativa>\n';
+    if(gv('dff-rect-num')){rectifBlock+='            <sii:FacturasRectificadas>\n               <sii:IDFacturaRectificada>\n                  <sii:NumSerieFacturaEmisor>'+esc(gv('dff-rect-num'))+'</sii:NumSerieFacturaEmisor>\n                  <sii:FechaExpedicionFacturaEmisor>'+esc(gv('dff-rect-date'))+'</sii:FechaExpedicionFacturaEmisor>\n               </sii:IDFacturaRectificada>\n            </sii:FacturasRectificadas>\n';}
+    if(rectitype==='S'){rectifBlock+='            <sii:ImporteRectificacion>\n               <sii:BaseRectificada>'+esc(gv('dff-base-rect'))+'</sii:BaseRectificada>\n               <sii:CuotaRectificada>'+esc(gv('dff-cuota-rect'))+'</sii:CuotaRectificada>\n               <sii:CuotaRecargoRectificado>'+esc(gv('dff-recargo-rect'))+'</sii:CuotaRecargoRectificado>\n            </sii:ImporteRectificacion>\n';}
+  }
+  var ispYn=gv('isp-yn')==='Y';
+  var ispBlock='';
+  if(ispYn){
+    var ispLines=document.querySelectorAll('#isp-lines .vl');
+    var ispD='';
+    ispLines.forEach(function(r){var rate=(r.querySelector('.ir')||{}).value||'';var base=(r.querySelector('.ib')||{}).value||'';var cuota=(r.querySelector('.iq')||{}).value||'';var bien=(r.querySelector('.ibi')||{}).value||'N';ispD+='                  <sii:DetalleIVA>\n                     <sii:TipoImpositivo>'+esc(rate)+'</sii:TipoImpositivo>\n                     <sii:BaseImponible>'+esc(base)+'</sii:BaseImponible>\n                     <sii:CuotaSoportada>'+esc(cuota)+'</sii:CuotaSoportada>\n                     <sii:BienInversion>'+esc(bien)+'</sii:BienInversion>\n                  </sii:DetalleIVA>\n';});
+    ispBlock='               <sii:InversionSujetoPasivo>\n'+ispD+'               </sii:InversionSujetoPasivo>\n';
+  }
+  var vatLines=document.querySelectorAll('#vat-lines .vl');
+  var vatD='';
+  vatLines.forEach(function(r){var rate=(r.querySelector('.vr')||{}).value||'';var base=(r.querySelector('.vb')||{}).value||'';var cuota=(r.querySelector('.vq')||{}).value||'';var rec=(r.querySelector('.vrec')||{}).value||'';var bien=(r.querySelector('.vbi')||{}).value||'N';vatD+='                  <sii:DetalleIVA>\n                     <sii:TipoImpositivo>'+esc(rate)+'</sii:TipoImpositivo>\n                     <sii:BaseImponible>'+esc(base)+'</sii:BaseImponible>\n                     <sii:CuotaSoportada>'+esc(cuota)+'</sii:CuotaSoportada>\n';if(rec)vatD+='                     <sii:TipoRecargoEquivalencia>'+esc(rec)+'</sii:TipoRecargoEquivalencia>\n';vatD+='                     <sii:BienInversion>'+esc(bien)+'</sii:BienInversion>\n                  </sii:DetalleIVA>\n';});
+  var c2=gv('inv-clave2'),c3=gv('inv-clave3');
+  var billing=gv('dff-billing').substring(0,15);
+  var resumen=gv('inv-resumen');var fop=gv('inv-fop');
+  var x='<?xml version="1.0" encoding="UTF-8"?>\n<!-- SII FacturasRecibidas | Op: '+COP+' | TipoFactura: '+tipo+' | Generated: '+new Date().toLocaleDateString('es-ES')+' -->\n';
+  x+='<soapenv:Envelope\n   xmlns:sii="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroInformacion.xsd"\n   xmlns:siiLR="https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroLR.xsd"\n   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n   xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">\n   <soapenv:Header/>\n   <soapenv:Body>\n      <siiLR:SuministroLRFacturasRecibidas>\n\n';
+  x+='         <!-- === CABECERA === -->\n         <sii:Cabecera>\n            <sii:IDVersionSii>1.1</sii:IDVersionSii>\n            <sii:Titular>\n               <sii:NombreRazon>'+esc(gv('t-name'))+'</sii:NombreRazon>\n               <sii:NIF>'+esc(gv('t-nif'))+'</sii:NIF>\n            </sii:Titular>\n            <sii:TipoComunicacion>'+esc(gv('inv-tcom'))+'</sii:TipoComunicacion>\n         </sii:Cabecera>\n\n';
+  x+='         <!-- === REGISTRO === -->\n         <siiLR:RegistroLRFacturasRecibidas>\n            <sii:PeriodoLiquidacion>\n               <sii:Ejercicio>'+esc(gv('inv-year'))+'</sii:Ejercicio>\n               <sii:Periodo>'+esc(gv('inv-period'))+'</sii:Periodo>\n            </sii:PeriodoLiquidacion>\n\n';
+  x+='            <!-- === ID FACTURA === -->\n            <siiLR:IDFactura>\n               <sii:IDEmisorFactura>\n'+sBlock+'\n               </sii:IDEmisorFactura>\n               <sii:NumSerieFacturaEmisor>'+esc(gv('inv-num'))+'</sii:NumSerieFacturaEmisor>\n';
+  if(resumen)x+='               <sii:NumSerieFacturaEmisorResumenFin>'+esc(resumen)+'</sii:NumSerieFacturaEmisorResumenFin>\n';
+  x+='               <sii:FechaExpedicionFacturaEmisor>'+esc(gv('inv-date'))+'</sii:FechaExpedicionFacturaEmisor>\n            </siiLR:IDFactura>\n\n';
+  x+='            <!-- === FACTURA RECIBIDA === -->\n            <siiLR:FacturaRecibida>\n               <sii:TipoFactura>'+esc(tipo)+'</sii:TipoFactura>\n';
+  x+=rectifBlock;
+  x+='               <sii:ClaveRegimenEspecialOTrascendencia>'+esc(gv('inv-clave'))+'</sii:ClaveRegimenEspecialOTrascendencia>\n';
+  if(c2)x+='               <sii:ClaveRegimenEspecialOTrascendenciaAdicional1>'+esc(c2)+'</sii:ClaveRegimenEspecialOTrascendenciaAdicional1>\n';
+  if(c3)x+='               <sii:ClaveRegimenEspecialOTrascendenciaAdicional2>'+esc(c3)+'</sii:ClaveRegimenEspecialOTrascendenciaAdicional2>\n';
+  if(billing)x+='               <sii:NumRegistroAcuerdoFacturacion>'+esc(billing)+'</sii:NumRegistroAcuerdoFacturacion>\n';
+  x+='               <sii:ImporteTotal>'+esc(gv('inv-total'))+'</sii:ImporteTotal>\n               <sii:DescripcionOperacion>'+esc(gv('inv-desc'))+'</sii:DescripcionOperacion>\n';
+  if(gv('inv-ref'))x+='               <sii:RefExterna>'+esc(gv('inv-ref'))+'</sii:RefExterna>\n';
+  if(gv('dff-simpl')==='S')x+='               <sii:FacturaSimplificadaArticulos7.2_7.3>S</sii:FacturaSimplificadaArticulos7.2_7.3>\n';
+  x+='               <sii:Contraparte>\n                  <sii:NombreRazon>'+esc(gv('s-name'))+'</sii:NombreRazon>\n'+sBlock.replace(/^/gm,'   ')+'\n               </sii:Contraparte>\n';
+  if(fop)x+='               <sii:FechaOperacion>'+esc(fop)+'</sii:FechaOperacion>\n';
+  x+='               <sii:FechaRegContable>'+esc(gv('inv-acct'))+'</sii:FechaRegContable>\n               <sii:CuotaDeducible>'+esc(gv('inv-deducible'))+'</sii:CuotaDeducible>\n';
+  if(gv('dff-late')==='S')x+='               <sii:RegPrevioGGEEoREDEMEoCompetencia>S</sii:RegPrevioGGEEoREDEMEoCompetencia>\n';
+  x+='\n               <!-- === VAT BREAKDOWN === -->\n               <sii:DesgloseFactura>\n';
+  if(ispYn)x+=ispBlock;
+  x+='                  <sii:DesgloseIVA>\n'+vatD+'                  </sii:DesgloseIVA>\n               </sii:DesgloseFactura>\n            </siiLR:FacturaRecibida>\n         </siiLR:RegistroLRFacturasRecibidas>\n      </siiLR:SuministroLRFacturasRecibidas>\n   </soapenv:Body>\n</soapenv:Envelope>';
+  document.getElementById('xml-out').textContent=x;
+}
+function cp(){
+  var t=document.getElementById('xml-out').textContent;
+  navigator.clipboard.writeText(t).then(function(){var b=document.querySelector('.btn-cp');b.textContent='Copied!';setTimeout(function(){b.textContent='Copy XML';},1500);});
+}
+</script>
+</body>
+</html>
